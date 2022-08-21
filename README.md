@@ -1,23 +1,26 @@
-# DS-MM-CF
-Get better Download Stats for Minecraft Mods hosted on CurseForge.
+# Magpie
+Get more **Download Stats** for **Minecraft Mods** hosted on **CurseForge**.
 
-When you have a mod on CurseForge (CF) you will eventually realize that the download stats only show you the total download count. You won't know how many people directly downloaded your mod from the website and how many downloads are from modpacks.
+When you host a mod on CurseForge (CF) you will eventually realize that the download stats provided by CF
+only show you the total download count.
 
-This script utilizes the `CFCore API` and `ModpackIndex API` in order to figure out which modpacks include your mod. 
-Then Each modpack file is checked to determine the download compositon of all of your public available mod files (archived files can't be querried using the CFCore api).
+The new CF dashboard does show now the daily & monthly download count, but you still won't
+know how many downloads are from modpacks or which specific version of a modpack includes your mod.
+Or which version of your mod still receives downloads.
 
-## Warning! ATM the Donwload Count is not in sync with the CF website
-Currently the donwload count returned by the `CFCore API` is only updated if there are any changes detected to the mod info. That means the resulting download stats are a bit skewed.
+## How it Works
+The scripts in this repository utilize the `CFCore API` and `ModpackIndex API` or a `WebScraper powered by Playwright` in order to figure out which modpacks include your mod. 
+Then the manifest of each version of a modpack is checked to determine which modpack file depends on your mod.
 
-**Workaround:**
-You can update the description of your mod to manually trigger the update of the download count.
+Note: The download composition is determined by all of your public available mod files 
+(archived files can't be queried using the CFCore api) which may skew the resulting stats.
 
 ## How to get the Data
-> You need a CurseForge Core API Key!
+> You need a CurseForge Core **API Key**
 
 You can get the API key from https://core.curseforge.com/. 
 Just login with a Google account and name your organisation with an arbitrary name, and you will automatically
-get an API Key that can query mod and file data from the CFCore API.
+get an API Key that can query mod and file data from the **CFCore API**.
 
 ### Example
 ```Python
@@ -43,8 +46,6 @@ mod_data_collector.collect_data(logger, save_handler, dependency_resolver, api_h
 ## Structure of Database created by DatasetSaveHandler
 https://github.com/Elenterius/DS-MM-CF/blob/main/db_schema.md
 
-## Dashboard
-To view the data you can run `python dashboard_app.py` for a simple dashboard web app (built with plotly dash and tailwindcss)
-which displays some simple download stats.
-
-<img alt="screenshot of the dashboard web app" src="dashboard_screenshot.png" title="Dashboard Screenshot" width="80%"/>
+## dashboard_app.py
+If you used the `DatasetSaveHandler` to store the data in a sqlite db you can run `python dashboard_app.py` for a simple dashboard web app (built with plotly dash and tailwindcss)
+which displays some rudimentary download stats.
