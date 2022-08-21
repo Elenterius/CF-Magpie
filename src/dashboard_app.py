@@ -47,7 +47,7 @@ def get_project_downloads_by_origin(db: Database, mod_id: int):
 	df = pd.DataFrame.from_dict(db_util.get_project_downloads_by_origin(db, mod_id))
 	if len(df) > 0:
 		df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
-		df.sort_values(by=['download_count'], ascending=False, inplace=True)
+		# df.sort_values(by=['download_count'], ascending=False, inplace=True)
 	return df
 
 
@@ -121,17 +121,14 @@ def create_project_downloads_by_file_figure(df: pd.DataFrame):
 
 
 def create_downloads_by_origin_figure(df: pd.DataFrame):
-	fig = px.bar(
+	fig = px.line(
 		df, x="timestamp", y='download_count',
 		color='name',
 		labels={'download_count': 'Download Count', 'timestamp': 'Datetime', 'name': 'Origin'},
-		text=df['percentage'].apply(lambda x: '{0:1.2f}%'.format(x)),
-		barmode="stack",
-		hover_name='name',
-		template='plotly_dark'
+		hover_name='name'
 	)
-	fig.update_traces(textposition='inside')
-	fig.update_layout({'plot_bgcolor': 'rgba(0, 0, 0, 0)', 'paper_bgcolor': 'rgba(0, 0, 0, 0)'})
+	# fig.update_traces(textposition='inside')
+	fig.update_layout({'plot_bgcolor': 'rgba(0, 0, 0, 0)', 'paper_bgcolor': 'rgba(0, 0, 0, 0)'}, template='plotly_dark')
 	return fig
 
 
@@ -283,14 +280,14 @@ def create_project_content(mod_name: str):
 						html.Span(["Included By Dependents:"], className="mr-4"),
 						html.Span([dependant_download_count, f" ({get_percentage(dependant_download_count, total_downloads)}%)"])]),
 				], className="bg-gray-600 bg-opacity-50 p-3 rounded shadow-lg"),
-				html.Div([
-					html.H2(["Worth Estimation"], className="text-xl"),
-					html.Div([
-						cf_points, " CFP* ",
-						html.Small(["≈ $", html.Span(['%.2f' % us_dollar])], className="text-base"),
-					], className="font-black text-5xl"),
-					html.Small(["*Assuming 100 CF points equal 5650 downloads"], className="text-yellow-400"),
-				], className="bg-gray-600 bg-opacity-50 p-3 rounded shadow-lg"),
+				# html.Div([
+				# 	html.H2(["Worth Estimation"], className="text-xl"),
+				# 	html.Div([
+				# 		cf_points, " CFP* ",
+				# 		html.Small(["≈ $", html.Span(['%.2f' % us_dollar])], className="text-base"),
+				# 	], className="font-black text-5xl"),
+				# 	html.Small(["*Assuming 100 CF points equal 5650 downloads"], className="text-yellow-400"),
+				# ], className="bg-gray-600 bg-opacity-50 p-3 rounded shadow-lg"),
 			], className="flex flex-row flex-wrap items-start gap-4 mt-4")
 		], className="w-full bg-gray-600 bg-opacity-50 p-3 rounded shadow-lg"),
 		html.Div([
@@ -348,9 +345,6 @@ app = dash.Dash(
 	external_stylesheets=["https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css"],
 	suppress_callback_exceptions=True
 )
-
-dbUrl = "sqlite:///mod_stats.db"  # url to the database created with the DatasetSaveHandler (supports SQLite, PostgreSQL or MySQL)
-
 app.layout = create_app_layout()
 
 
@@ -403,4 +397,5 @@ def handle_sidebar_content(pathname: str):
 
 
 if __name__ == '__main__':
-	app.run_server(debug=False)
+	dbUrl = "sqlite:///mod_stats.db"  # url to the database created with the DatasetSaveHandler (supports SQLite, PostgreSQL or MySQL)
+	app.run_server(debug=True)
