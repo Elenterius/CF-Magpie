@@ -35,12 +35,11 @@ cf_api_key = "YOUR_CF_CORE_API_KEY"
 mod_id = 492939  # Project Id (you can find it on the cf mod page) or use the CFCoreAPI to search for the mod by name
 
 api_helper = ApiHelper(cf_api_key)
-dependency_resolver = DependencyResolver(api_helper, logger)
 
-# save handler implementation of your choice
-save_handler = DatasetSaveHandler("sqlite:///mod_stats.db", int(time.time()))
-
-mod_data_collector.collect_data(logger, save_handler, dependency_resolver, api_helper, mod_id)
+with DependencyResolver(api_helper, logger) as dependency_resolver:
+  # save handler implementation of your choice
+  with DatasetSaveHandler("sqlite:///mod_stats.db", int(time.time())) as save_handler:
+    mod_data_collector.collect_data(logger, save_handler, dependency_resolver, api_helper, mod_id)
 ```
 
 ## Structure of Database created by DatasetSaveHandler
