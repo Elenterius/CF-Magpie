@@ -1,5 +1,6 @@
 import logging
 import time
+from typing import List
 
 import requests
 
@@ -35,7 +36,7 @@ def parse_release_type(type_id: int) -> str:
 	return names[type_id]
 
 
-def store_files(save_handler: SaveHandlerInterface, files: dict):
+def store_files(save_handler: SaveHandlerInterface, files: List[dict]):
 	for file in files:
 		store_file_info(save_handler, file)
 
@@ -80,7 +81,7 @@ def collect_data(logger: logging.Logger, save_handler: SaveHandlerInterface, dep
 	"""
 
 	try:
-		response = api_helper.cf_api.get_mod(mod_id)
+		response = api_helper.cf_api.get_project(mod_id)
 		response.raise_for_status()
 		project = response.json()["data"]
 	except requests.RequestException as error:
@@ -96,10 +97,7 @@ def collect_data(logger: logging.Logger, save_handler: SaveHandlerInterface, dep
 
 	logger.info("Fetching Project Files Info...")
 	try:
-		time.sleep(0.5)
-		response = api_helper.cf_api.get_mod_files(mod_id)  # TODO: handle pagination
-		response.raise_for_status()
-		files = response.json()["data"]
+		files = api_helper.cf_api.get_all_project_files(mod_id)
 	except requests.RequestException as error:
 		logger.error(f"Failed to query files info for project <{project['slug']}> -> CFCore API: {error}")
 		return False
@@ -117,7 +115,7 @@ def collect_data(logger: logging.Logger, save_handler: SaveHandlerInterface, dep
 
 
 def _collect_data_for_project_dependents(logger: logging.Logger, save_handler: SaveHandlerInterface, dependency_resolver: DependencyResolverInterface, api_helper: ApiHelper, project_id: int, project_name: str, project_slug: str) -> bool:
-	dependents, files = dependency_resolver.get_project_dependents(project_id, project_name)
+	dependents, files = dependency_resolver.get_project_dependents(project_id, project_name, project_slug)
 
 	if len(dependents) > 0:
 		logger.info("Storing dependents Info...")
@@ -128,7 +126,6 @@ def _collect_data_for_project_dependents(logger: logging.Logger, save_handler: S
 		file_ids = [ufid.file_id for ufid in files]
 		logger.debug(f"Retrieving data for {len(file_ids)} files that depend on project <{project_name}>")
 		try:
-			time.sleep(0.5)
 			response = api_helper.cf_api.get_files(file_ids)
 			response.raise_for_status()
 			files = response.json()["data"]
@@ -143,8 +140,7 @@ def _collect_data_for_project_dependents(logger: logging.Logger, save_handler: S
 				store_file_info(save_handler, file)
 				store_file_dependency(save_handler, file, dependency)
 			else:
-				logger.warning(f"Skipping file <{file['fileName']}> -> Unable to determine the files dependencies")
-				logger.warning(f"Skipping file <{file['fileName']}> -> File is does not depend on <{project_slug}>")
+				logger.warning(f"Skipping file <{file['fileName']}> -> Unable to determine the files dependencies: File is does not depend on <{project_slug}>")
 
 		return True
 	return False

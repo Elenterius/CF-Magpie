@@ -133,7 +133,7 @@ class DependencyResolver(DependencyResolverInterface):
 		self.logger.info(f'Found {len(dependents_ids)} dependents')
 		time.sleep(0.5)
 		try:
-			response = self.apiHelper.cf_api.get_mods(dependents_ids)
+			response = self.apiHelper.cf_api.get_projects(dependents_ids)
 			response.raise_for_status()
 			dependents = response.json()["data"]
 		except requests.RequestException as error:
@@ -169,9 +169,7 @@ class DependencyResolver(DependencyResolverInterface):
 
 		time.sleep(0.5)
 		try:
-			response = self.apiHelper.cf_api.get_mod_files(dependant['id'])  # TODO: handle pagination
-			response.raise_for_status()
-			files = response.json()["data"]
+			files = self.apiHelper.cf_api.get_all_project_files(dependant['id'])
 		except requests.RequestException as error:
 			self.logger.error(f"Failed to query project files for id <{dependant['id']}> -> CFCore API: {error}")
 			return []
